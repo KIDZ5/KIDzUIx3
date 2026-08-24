@@ -1,0 +1,8 @@
+KIDzUIx3 Thai localization audit
+================================
+Thai Markdown pages: 41
+Built-in duplicate language selector: removed
+Custom language selector: exactly one
+Thai navigation/UI labels: enabled
+Thai documentation prose: localized
+Code/API identifiers: intentionally preserved in original names for correctness

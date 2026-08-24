@@ -1,0 +1,135 @@
+[project]
+extra_javascript = ["assets/javascripts/language-switch.js"]
+site_dir = "site/th"
+docs_dir = "docs-th"
+site_name = "เอกสารสำหรับนักพัฒนา KIDzUIx3"
+repo_name = "KIDZ5/KIDzUIx3"
+repo_url = "https://github.com/KIDZ5/KIDzUIx3"
+site_url = "https://kidz5.github.io/KIDzUIx3/th/"
+edit_uri = "edit/main/docs-th/"
+extra_css = ["assets/styles/extra.css"]
+
+nav = [
+    { "เอกสาร KIDzUIx3" = "index.md" },
+    { "เริ่มต้นใช้งาน" = [
+        { "แนวทางการออกแบบอินเทอร์เฟซ" = "Getting Started/interface-guidelines.md" },
+        { "การนำเข้าไลบรารี" = "Getting Started/importing-the-library.md" },
+        { "การสร้างจากซอร์สโค้ด" = "Getting Started/building-from-source.md" },
+        { "ตัวอย่าง" = "Getting Started/example.md" },
+        { "API" = [
+            { "ภาพรวม API" = "Getting Started/The API/index.md" },
+            { "App — การสร้างและจัดการแอป" = "Getting Started/The API/app.md" },
+            { "Standalone API — การใช้แบบแยกเดี่ยว" = "Getting Started/The API/standalone.md" },
+            { "Themes — ธีม" = "Getting Started/The API/themes.md" },
+            { "Accents — ชุดสี Accent" = "Getting Started/The API/accents.md" },
+        ] },
+    ] },
+    { "คอมโพเนนต์" = [
+        { "Window — หน้าต่าง" = "Components/Window.md" },
+        { "Section — หมวด" = "Components/Section.md" },
+        { "Tab — แท็บ" = "Components/Tab.md" },
+        { "Page — หน้า" = "Components/Page.md" },
+        { "PageSection — ส่วนของหน้า" = "Components/PageSection.md" },
+        { "Form — ฟอร์ม" = "Components/Form.md" },
+        { "Row — แถว" = "Components/Row.md" },
+        { "VStack — แนวตั้ง" = "Components/VStack.md" },
+        { "HStack — แนวนอน" = "Components/HStack.md" },
+        { "TitleStack — กลุ่มหัวข้อ" = "Components/TitleStack.md" },
+        { "Label — ข้อความ" = "Components/Label.md" },
+        { "Symbol — สัญลักษณ์" = "Components/Symbol.md" },
+        { "ImageSurface — พื้นผิวรูปภาพ" = "Components/ImageSurface.md" },
+        { "Button — ปุ่ม" = "Components/Button.md" },
+        { "Toggle — สวิตช์" = "Components/Toggle.md" },
+        { "Stepper — ตัวเพิ่มลดค่า" = "Components/Stepper.md" },
+        { "Slider — ตัวเลื่อน" = "Components/Slider.md" },
+        { "KeybindField — ช่องปุ่มลัด" = "Components/KeybindField.md" },
+        { "TextField — ช่องข้อความ" = "Components/TextField.md" },
+        { "RadioButtonGroup — กลุ่มตัวเลือก" = "Components/RadioButtonGroup.md" },
+        { "PopUpButton — ปุ่มป๊อปอัป" = "Components/PopUpButton.md" },
+        { "PullDownButton — ปุ่มดรอปดาวน์" = "Components/PullDownButton.md" },
+        { "Notification — การแจ้งเตือน" = "Components/Notification.md" },
+    ] },
+    { "การสร้างคอมโพเนนต์" = [
+        { "บทนำ" = "Custom Components/introduction.md" },
+        { "การสร้างคอมโพเนนต์" = "Custom Components/creating-a-component.md" },
+        { "โมดูลภายใน" = "Custom Components/internal-modules.md" },
+    ] },
+    { "การสร้างธีมและ Accent" = [
+        { "บทนำ" = "Creating Themes & Accents/introduction.md" },
+        { "ValueState" = "Creating Themes & Accents/valueState.md" },
+        { "การสร้างธีม" = "Creating Themes & Accents/themes.md" },
+        { "การสร้าง Accent" = "Creating Themes & Accents/accents.md" },
+    ] },
+]
+
+[project.theme]
+name = "material"
+favicon = "assets/kidzuix3-favicon-v3-20260824.png"
+logo = "assets/logo.svg"
+
+features = [
+    "navigation.tabs",
+    "navigation.tabs.sticky",
+    "navigation.instant",
+    "navigation.instant.progress",
+    "navigation.tracking",
+    "navigation.sections",
+    "navigation.expand",
+    "navigation.path",
+    "navigation.indexes",
+    "navigation.top",
+    "navigation.footer",
+    "toc.follow",
+    "search.suggest",
+    "content.action.edit",
+    "content.action.view",
+    "content.code.copy",
+    "content.code.select",
+    "content.code.annotate",
+]
+
+language = "th"
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+edit = "material/pencil"
+view = "material/eye"
+
+[project.theme.font]
+text = "Roboto"
+code = "Roboto Mono"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "light blue"
+accent = "light blue"
+toggle.icon = "material/toggle-switch"
+toggle.name = "เปลี่ยนเป็นโหมดสว่าง"
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "light blue"
+accent = "light blue"
+toggle.icon = "material/toggle-switch-off-outline"
+toggle.name = "เปลี่ยนเป็นโหมดมืด"
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.snippets]
+[project.markdown_extensions.pymdownx.superfences]
+[project.markdown_extensions.pymdownx.tasklist]
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+
+[project.extra]
+generator = false
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/KIDZ5/KIDzUIx3"
+

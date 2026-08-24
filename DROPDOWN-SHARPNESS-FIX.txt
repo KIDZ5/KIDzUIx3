@@ -1,0 +1,23 @@
+KIDzUIx3 Dropdown sharpness fix — final
+=========================================
+This patch is intentionally scoped to the shared dropdown menu used by
+PopUpButton and PullDownButton.
+
+Changed:
+- Dropdown MenuBody: CanvasGroup -> Frame
+- Dropdown open/close: GroupTransparency -> Visible
+- Synchronized source and all three dist builds
+
+Unchanged:
+- PopUpButton and PullDownButton public APIs
+- option callbacks and values
+- checkmarks
+- anchoring and positioning
+- scrolling / max-height
+- theme colors
+- outside-click close behavior
+
+Reason:
+Roblox CanvasGroup composites descendants into a texture. This can soften small
+TextLabels. A normal Frame renders the dropdown labels directly, keeping them
+sharp. The whole-menu fade was removed because it required CanvasGroup.

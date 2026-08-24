@@ -1,0 +1,6 @@
+Language selector restyled to match the supplied reference.
+- One selector only
+- Vector flag icons
+- EN / English and TH / ภาษาไทย
+- Active language check icon
+- Dropdown arrow icon

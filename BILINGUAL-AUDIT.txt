@@ -1,0 +1,11 @@
+KIDzUIx3 bilingual documentation audit
+======================================
+English Markdown files: 41
+Thai Markdown files: 41
+English URL: https://kidz5.github.io/KIDzUIx3/
+Thai URL: https://kidz5.github.io/KIDzUIx3/th/
+English theme language: en
+Thai theme language: th
+Language selector: enabled (EN / TH)
+Current-page language switching: enabled via assets/javascripts/language-switch.js
+Source/API identifiers and Luau code are intentionally kept unchanged.

@@ -1,0 +1,63 @@
+# Internal Modules
+
+KIDzUIx3 exposes its core internal modules via the `KIDzUIx3` object. These modules are essential for building high-quality, reactive components.
+
+## `#!luau KIDzUIx3.Creator`
+
+The `Creator` module is responsible for creating and styling Roblox instances.
+
+### `#!luau Creator.Create(className: string)`
+
+Returns a function that allows you to create an instance and apply properties. It also supports nesting of children.
+
+```luau
+local create = KIDzUIx3.Creator.Create
+
+local frame = create("Frame")({
+    Name = "MyFrame",
+    Size = UDim2.fromScale(1, 1),
+
+    create("UICorner")({ CornerRadius = UDim.new(0, 4) }),
+})
+```
+
+### `#!luau Creator.Value(initial: any)`
+
+Creates a reactive value (a "State"). When the value of this state changes, any instance properties bound to it will automatically update.
+
+---
+
+## `#!luau KIDzUIx3.Binder`
+
+The `Binder` module provides the glue between your custom component objects and the underlying Roblox instances.
+
+### `#!luau Binder.Wrap(object, bindings, instance?, excludes?)`
+
+Creates a proxy that merges your object's custom logic with the Roblox instance's properties.
+
+- **`object`**: Your custom table containing component state and methods.
+- **`bindings`**: A table of functions to call when specific keys are set on the proxy.
+- **`instance`**: The raw Roblox instance to proxy properties to.
+- **`excludes`**: A list of property names that should not be automatically applied to the instance.
+
+### `#!luau Binder.Apply(properties, object, excludes?)`
+
+Sets a table of properties onto an object, ignoring any keys in `excludes`. This is typically used to apply user-provided properties during component initialization.
+
+---
+
+## `#!luau KIDzUIx3.Symbols`
+
+A lookup table containing hundreds of icons.
+
+```luau
+local icon = KIDzUIx3.Symbols.squareStack3dUp
+```
+
+---
+
+## Hidden Properties
+
+When your component is called as a child of another, it gains access to specific internal properties via `#!luau self`:
+
+- **`#!luau self.__container`**: The instance that children should be parented to. For example, `Window` sets this to its body area. This is why you should always fallback to `#!luau self.__container` for parenting.

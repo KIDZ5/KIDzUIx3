@@ -1,0 +1,11 @@
+KIDzUIx3 Thai heading/navigation audit
+=====================================
+Thai Markdown files: 41
+English-containing headings before fix: 62
+Pure-English headings remaining after fix (excluding API identifiers): 1
+Thai navigation labels: explicitly defined in zensical.th.toml
+Example page title: ตัวอย่าง
+App page title: App — การสร้างและจัดการแอป
+Standalone page title: Standalone API — การใช้คอมโพเนนต์แบบแยกเดี่ยว
+
+Custom Components/introduction.md:7: RegisterComponent

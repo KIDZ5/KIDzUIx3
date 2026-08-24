@@ -1,0 +1,3 @@
+{
+  "releaseNotesEditor": { "args": ["--wait", "{file}"], "command": "code" }
+}

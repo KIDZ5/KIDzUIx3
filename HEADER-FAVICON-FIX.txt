@@ -1,0 +1,4 @@
+Custom EN/TH header selector enabled.
+English: /KIDzUIx3/
+Thai: /KIDzUIx3/th/
+Favicon cache-busted to kidzuix3-favicon-v3-20260824.png.

@@ -1,0 +1,10 @@
+KIDzUIx3 Thai final audit
+========================
+Thai page headings/navigation: localized
+Example: ตัวอย่าง
+App: App — การสร้างและจัดการแอป
+Standalone API: Standalone API — การใช้คอมโพเนนต์แบบแยกเดี่ยว
+RegisterComponent: RegisterComponent — การลงทะเบียนคอมโพเนนต์
+Technical identifiers/code intentionally retain original API names.
+Long English prose candidates outside code after audit: 0
+
