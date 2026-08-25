@@ -8,7 +8,7 @@
     @description A Luau UI library based on macOS Sequoia.
     @license MIT License
 
-    @buildDate "2026-05-21T17:25:03.360764500+00:00"
+    @buildDate "2026-08-25T04:09:04.356730700+00:00"
     @buildCfg "Release"
     @buildVers "v1.0.0"
 
@@ -13596,7 +13596,212 @@ local creator = __DIST.d()
 
 	return object
 end
-end function __DIST.E():typeof(__modImpl())local v=__DIST.cache.E if not v then v={c=__modImpl()}__DIST.cache.E=v end return v.c end end do local function __modImpl()
+end function __DIST.E():typeof(__modImpl())local v=__DIST.cache.E if not v then v={c=__modImpl()}__DIST.cache.E=v end return v.c end end do local function __modImpl()-- KIDzUIx3 - Optional MobileButton component
+-- This component is completely opt-in:
+-- nothing is created and no existing UI behavior changes until Window:MobileButton(...) is called.
+
+
+return function(self, properties)
+	--// Imports
+	local creator = __DIST.d()
+	local binder = __DIST.c()
+	local services = __DIST.e()
+
+	--// References
+	local create = creator.Create
+	local userInputService = services.UserInputService
+
+	--// Validate Window context
+	if not self or self.Type ~= "Window" or not self.Structures or not self.Structures.Body then
+		error("MobileButton must be created from a KIDzUIx3 Window", 2)
+	end
+
+	local windowBody = self.Structures.Body.__instance
+	local screenGui = windowBody and windowBody:FindFirstAncestorOfClass("ScreenGui")
+
+	if not screenGui then
+		error("MobileButton could not find the KIDzUIx3 ScreenGui", 2)
+	end
+
+	-- Only keep one MobileButton per Window.
+	-- Calling Window:MobileButton(...) again replaces the previous one.
+	if self.Structures.MobileButton then
+		pcall(function()
+			self.Structures.MobileButton:Destroy()
+		end)
+		self.Structures.MobileButton = nil
+	end
+
+	--// Properties
+	properties = properties or {}
+	properties.Image = properties.Image or ""
+	properties.Size = properties.Size or UDim2.fromOffset(56, 56)
+	properties.Position = properties.Position or UDim2.fromScale(0.88, 0.5)
+	properties.Visible = properties.Visible ~= false
+	properties.DragEnabled = properties.DragEnabled ~= false
+	properties.DragThreshold = math.max(0, tonumber(properties.DragThreshold) or 6)
+
+	--// UI
+	local structures = {}
+
+	structures.Body = binder.Apply(
+		properties,
+		create("ImageButton")({
+			Name = "MobileButton",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			AutoButtonColor = false,
+			Active = true,
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Image = properties.Image,
+			Position = properties.Position,
+			ScaleType = Enum.ScaleType.Fit,
+			Size = properties.Size,
+			Visible = properties.Visible,
+			ZIndex = 1000,
+			Parent = screenGui,
+		})
+	) :: ImageButton
+
+	local object = binder.Wrap(properties, {}, structures.Body)
+	object.Type = "MobileButton"
+	object.Theme = self.Theme
+	object.Structures = structures
+	object.Window = self
+
+	self.Structures.MobileButton = structures.Body
+
+	--// Dragging
+	local dragging = false
+	local dragInput = nil
+	local dragStart = nil
+	local startPosition = nil
+	local movedEnough = false
+	local suppressActivateUntil = 0
+	local endConnection = nil
+	local globalInputConnection = nil
+	local windowDestroyConnection = nil
+
+	local function finishDrag()
+		if not dragging then
+			return
+		end
+
+		dragging = false
+
+		if movedEnough then
+			suppressActivateUntil = os.clock() + 0.15
+
+			if type(properties.PositionChanged) == "function" then
+				task.spawn(properties.PositionChanged, structures.Body.Position)
+			end
+		end
+	end
+
+	structures.Body.InputBegan:Connect(function(input)
+		if not properties.DragEnabled then
+			return
+		end
+
+		if
+			input.UserInputType ~= Enum.UserInputType.MouseButton1
+			and input.UserInputType ~= Enum.UserInputType.Touch
+		then
+			return
+		end
+
+		dragging = true
+		dragStart = input.Position
+		startPosition = structures.Body.Position
+		movedEnough = false
+
+		if endConnection then
+			endConnection:Disconnect()
+			endConnection = nil
+		end
+
+		endConnection = input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				finishDrag()
+			end
+		end)
+	end)
+
+	structures.Body.InputChanged:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
+			dragInput = input
+		end
+	end)
+
+	globalInputConnection = userInputService.InputChanged:Connect(function(input)
+		if not dragging or input ~= dragInput or not dragStart or not startPosition then
+			return
+		end
+
+		local delta = input.Position - dragStart
+
+		if not movedEnough and delta.Magnitude >= properties.DragThreshold then
+			movedEnough = true
+			suppressActivateUntil = os.clock() + 0.15
+		end
+
+		structures.Body.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end)
+
+	--// Minimize / restore the Window
+	structures.Body.Activated:Connect(function()
+		if dragging or movedEnough or os.clock() < suppressActivateUntil then
+			return
+		end
+
+		local minimized = self.Minimized ~= true
+		self.Minimized = minimized
+
+		if type(properties.Toggled) == "function" then
+			task.spawn(properties.Toggled, minimized)
+		end
+	end)
+
+	-- Keep the floating button alive while the Window is minimized,
+	-- but remove it automatically when that Window is destroyed.
+	windowDestroyConnection = windowBody.Destroying:Connect(function()
+		pcall(function()
+			structures.Body:Destroy()
+		end)
+	end)
+
+	structures.Body.Destroying:Connect(function()
+		if endConnection then
+			endConnection:Disconnect()
+			endConnection = nil
+		end
+
+		if globalInputConnection then
+			globalInputConnection:Disconnect()
+			globalInputConnection = nil
+		end
+
+		if windowDestroyConnection then
+			windowDestroyConnection:Disconnect()
+			windowDestroyConnection = nil
+		end
+
+		if self.Structures and self.Structures.MobileButton == structures.Body then
+			self.Structures.MobileButton = nil
+		end
+	end)
+
+	return object
+end
+end function __DIST.F():typeof(__modImpl())local v=__DIST.cache.F if not v then v={c=__modImpl()}__DIST.cache.F=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self, properties: StepperProperties__DARKLUA_TYPE_1): Stepper__DARKLUA_TYPE_2	--// Imports
@@ -14011,7 +14216,7 @@ local create = creator.Create
 
 	return object
 end
-end function __DIST.F():typeof(__modImpl())local v=__DIST.cache.F if not v then v={c=__modImpl()}__DIST.cache.F=v end return v.c end end do local function __modImpl()
+end function __DIST.G():typeof(__modImpl())local v=__DIST.cache.G if not v then v={c=__modImpl()}__DIST.cache.G=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self, properties: RadioButtonGroupProperties__DARKLUA_TYPE_3): RadioButtonGroup__DARKLUA_TYPE_4	--// Imports
@@ -14313,7 +14518,7 @@ local creator = __DIST.d()
 
 	return object
 end
-end function __DIST.G():typeof(__modImpl())local v=__DIST.cache.G if not v then v={c=__modImpl()}__DIST.cache.G=v end return v.c end end do local function __modImpl()--// Imports
+end function __DIST.H():typeof(__modImpl())local v=__DIST.cache.H if not v then v={c=__modImpl()}__DIST.cache.H=v end return v.c end end do local function __modImpl()--// Imports
 
 local creator = __DIST.d()
 
@@ -14507,9 +14712,9 @@ return function(self, config: DropdownMenuStructureConfig__DARKLUA_TYPE_ag?)
 	--// Publish
 	return structures
 end
-end function __DIST.H():typeof(__modImpl())local v=__DIST.cache.H if not v then v={c=__modImpl()}__DIST.cache.H=v end return v.c end end do local function __modImpl()--// Imports
+end function __DIST.I():typeof(__modImpl())local v=__DIST.cache.I if not v then v={c=__modImpl()}__DIST.cache.I=v end return v.c end end do local function __modImpl()--// Imports
 
-local createStructure = __DIST.H()
+local createStructure = __DIST.I()
 local services = __DIST.e()
 local utility = __DIST.a()
 
@@ -15013,14 +15218,14 @@ end
 
 --// Publish
 return DropdownMenu
-end function __DIST.I():typeof(__modImpl())local v=__DIST.cache.I if not v then v={c=__modImpl()}__DIST.cache.I=v end return v.c end end do local function __modImpl()
+end function __DIST.J():typeof(__modImpl())local v=__DIST.cache.J if not v then v={c=__modImpl()}__DIST.cache.J=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self, properties: PopUpButtonProperties__DARKLUA_TYPE_7): PopUpButton__DARKLUA_TYPE_8	--// Imports
 	
 local creator = __DIST.d()
 	local binder = __DIST.c()
-	local dropdownMenu = __DIST.I()
+	local dropdownMenu = __DIST.J()
 
 	--// References
 	local create = creator.Create
@@ -15301,14 +15506,14 @@ local creator = __DIST.d()
 
 	return object
 end
-end function __DIST.J():typeof(__modImpl())local v=__DIST.cache.J if not v then v={c=__modImpl()}__DIST.cache.J=v end return v.c end end do local function __modImpl()
+end function __DIST.K():typeof(__modImpl())local v=__DIST.cache.K if not v then v={c=__modImpl()}__DIST.cache.K=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self, properties: PullDownButtonProperties__DARKLUA_TYPE_9): PullDownButton__DARKLUA_TYPE_aa	--// Imports
 	
 local creator = __DIST.d()
 	local binder = __DIST.c()
-	local dropdownMenu = __DIST.I()
+	local dropdownMenu = __DIST.J()
 
 	--// References
 	local create = creator.Create
@@ -15489,7 +15694,7 @@ local creator = __DIST.d()
 
 	return object
 end
-end function __DIST.K():typeof(__modImpl())local v=__DIST.cache.K if not v then v={c=__modImpl()}__DIST.cache.K=v end return v.c end end do local function __modImpl()
+end function __DIST.L():typeof(__modImpl())local v=__DIST.cache.L if not v then v={c=__modImpl()}__DIST.cache.L=v end return v.c end end do local function __modImpl()
 local notificationList = {}
 
 local services = __DIST.e()
@@ -15592,7 +15797,7 @@ function notificationList.RemoveNotification(notificationObj)
 end
 
 return notificationList
-end function __DIST.L():typeof(__modImpl())local v=__DIST.cache.L if not v then v={c=__modImpl()}__DIST.cache.L=v end return v.c end end do local function __modImpl()
+end function __DIST.M():typeof(__modImpl())local v=__DIST.cache.M if not v then v={c=__modImpl()}__DIST.cache.M=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self: any, properties: NotificationProperties__DARKLUA_TYPE_ab, state: { Age: number }, MAX_NOTIFICATIONS: number)
@@ -15945,14 +16150,14 @@ return function(self: any, properties: NotificationProperties__DARKLUA_TYPE_ab, 
 
 	return body, exitBtn, canvas, content, topbar
 end
-end function __DIST.M():typeof(__modImpl())local v=__DIST.cache.M if not v then v={c=__modImpl()}__DIST.cache.M=v end return v.c end end do local function __modImpl()
+end function __DIST.N():typeof(__modImpl())local v=__DIST.cache.N if not v then v={c=__modImpl()}__DIST.cache.N=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self, properties: NotificationProperties__DARKLUA_TYPE_ab): Notification__DARKLUA_TYPE_ac	
 local services = __DIST.e()
 	local binder = __DIST.c()
-	local notificationList = __DIST.L()
-	local ui = __DIST.M()
+	local notificationList = __DIST.M()
+	local ui = __DIST.N()
 
 	local tweenService = services.TweenService
 
@@ -16157,7 +16362,7 @@ local services = __DIST.e()
 
 	return object
 end
-end function __DIST.N():typeof(__modImpl())local v=__DIST.cache.N if not v then v={c=__modImpl()}__DIST.cache.N=v end return v.c end end do local function __modImpl()
+end function __DIST.O():typeof(__modImpl())local v=__DIST.cache.O if not v then v={c=__modImpl()}__DIST.cache.O=v end return v.c end end do local function __modImpl()
 return function(self: any)
 	--// Imports
 	local creator = __DIST.d()
@@ -16226,14 +16431,14 @@ return function(self: any)
 
 	return structures
 end
-end function __DIST.O():typeof(__modImpl())local v=__DIST.cache.O if not v then v={c=__modImpl()}__DIST.cache.O=v end return v.c end end do local function __modImpl()
+end function __DIST.P():typeof(__modImpl())local v=__DIST.cache.P if not v then v={c=__modImpl()}__DIST.cache.P=v end return v.c end end do local function __modImpl()
 local types = __DIST.b()
 
 return function(self, properties: ImageSurfaceProperties__DARKLUA_TYPE_ad): ImageSurface__DARKLUA_TYPE_ae	--// Imports
 	
 local binder = __DIST.c()
 
-	local ui = __DIST.O()
+	local ui = __DIST.P()
 
 	--// Variables
 	local structures = ui(self)
@@ -16271,7 +16476,7 @@ local binder = __DIST.c()
 
 	return object
 end
-end function __DIST.P():typeof(__modImpl())local v=__DIST.cache.P if not v then v={c=__modImpl()}__DIST.cache.P=v end return v.c end end do local function __modImpl()--// Imports
+end function __DIST.Q():typeof(__modImpl())local v=__DIST.cache.Q if not v then v={c=__modImpl()}__DIST.cache.Q=v end return v.c end end do local function __modImpl()--// Imports
 
 local binder = __DIST.c()
 local appRecorder = __DIST.f()
@@ -16294,14 +16499,15 @@ local components = {
 	KeybindField = __DIST.C(),
 	Slider = __DIST.D(),
 	Button = __DIST.E(),
-	Stepper = __DIST.F(),
-	RadioButtonGroup = __DIST.G(),
-	PopUpButton = __DIST.J(),
-	PullDownButton = __DIST.K(),
+	MobileButton = __DIST.F(),
+	Stepper = __DIST.G(),
+	RadioButtonGroup = __DIST.H(),
+	PopUpButton = __DIST.K(),
+	PullDownButton = __DIST.L(),
 	Page = __DIST.p()
 ,
-	Notification = __DIST.N(),
-	ImageSurface = __DIST.P(),
+	Notification = __DIST.O(),
+	ImageSurface = __DIST.Q(),
 }
 
 --// Initialize
@@ -16386,7 +16592,7 @@ function components.register(name: string, make: (any, any) -> any)
 end
 
 return components
-end function __DIST.Q():typeof(__modImpl())local v=__DIST.cache.Q if not v then v={c=__modImpl()}__DIST.cache.Q=v end return v.c end end do local function __modImpl()--// Imports
+end function __DIST.R():typeof(__modImpl())local v=__DIST.cache.R if not v then v={c=__modImpl()}__DIST.cache.R=v end return v.c end end do local function __modImpl()--// Imports
 local creator = __DIST.d()
 
 --// References
@@ -16527,7 +16733,7 @@ return {
 		},
 	},
 }
-end function __DIST.R():typeof(__modImpl())local v=__DIST.cache.R if not v then v={c=__modImpl()}__DIST.cache.R=v end return v.c end end do local function __modImpl()--// Imports
+end function __DIST.S():typeof(__modImpl())local v=__DIST.cache.S if not v then v={c=__modImpl()}__DIST.cache.S=v end return v.c end end do local function __modImpl()--// Imports
 
 local creator = __DIST.d()
 
@@ -16669,12 +16875,12 @@ return {
 		},
 	},
 }
-end function __DIST.S():typeof(__modImpl())local v=__DIST.cache.S if not v then v={c=__modImpl()}__DIST.cache.S=v end return v.c end end do local function __modImpl()
+end function __DIST.T():typeof(__modImpl())local v=__DIST.cache.T if not v then v={c=__modImpl()}__DIST.cache.T=v end return v.c end end do local function __modImpl()
 return {
-	Dark = __DIST.R(),
-	Light = __DIST.S(),
+	Dark = __DIST.S(),
+	Light = __DIST.T(),
 }
-end function __DIST.T():typeof(__modImpl())local v=__DIST.cache.T if not v then v={c=__modImpl()}__DIST.cache.T=v end return v.c end end do local function __modImpl()--// Private Methods
+end function __DIST.U():typeof(__modImpl())local v=__DIST.cache.U if not v then v={c=__modImpl()}__DIST.cache.U=v end return v.c end end do local function __modImpl()--// Private Methods
 
 local function makeGradient(topHex, bottomHex)
 	return ColorSequence.new({
@@ -16839,7 +17045,7 @@ return {
 			Button = { FillPrimary = makeGradient("#626266", "#383838") },
 		},
 	},
-}end function __DIST.U():typeof(__modImpl())local v=__DIST.cache.U if not v then v={c=__modImpl()}__DIST.cache.U=v end return v.c end end end--// Imports
+}end function __DIST.V():typeof(__modImpl())local v=__DIST.cache.V if not v then v={c=__modImpl()}__DIST.cache.V=v end return v.c end end end--// Imports
 
 local utility = __DIST.a()
 local types = __DIST.b()
@@ -16849,10 +17055,10 @@ local services = __DIST.e()
 local appRecorder = __DIST.f()
 
 local symbols = __DIST.g()
-local components = __DIST.Q()
+local components = __DIST.R()
 
-local themes = __DIST.T()
-local accents = __DIST.U()
+local themes = __DIST.U()
+local accents = __DIST.V()
 
 --// References
 local create = creator.Create
