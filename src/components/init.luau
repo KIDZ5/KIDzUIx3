@@ -20,6 +20,7 @@ local components = {
 	KeybindField = require("@components/KeybindField"),
 	Slider = require("@components/Slider"),
 	Button = require("@components/Button"),
+	MobileButton = require("@components/MobileButton"),
 	Stepper = require("@components/Stepper"),
 	RadioButtonGroup = require("@components/RadioButtonGroup"),
 	PopUpButton = require("@components/PopUpButton"),
